@@ -5,7 +5,7 @@ import pickle, os
 import json
 
 def getIDs():
-    return {"bostonglobe":"95431448"}
+    return {"BostonGlobe":"95431448"}
 
 def getArticle(destination, url):
     title = ''
