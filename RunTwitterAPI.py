@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+###REQUIRES SpellCheck.py in directory and at least one scraper in the ./Scrapers directory
+#Also requires twitter API keys in a file called keys.json with the following dict:
+# {"CONSUMER_KEY":##,"CONSUMER_SECRET":##, "ACCESS_TOKEN":##, "ACCESS_TOKEN_SECRET" ##}
+
+#It'll complain if you're missing anything!
+
 import os, datetime, sys
 import tweepy
 import pickle
@@ -141,11 +147,11 @@ def getArticle(publisher, tweet_path, tweet_id):
             return
     
     print (myURL)
-
+    
     #K, so the scrapers were all loaded into this scrapers dictionary by publisher so use
     #the right scraper to parse the HTML
     article = scrapers[publisher].getArticle(destDir + "/" + artDir + "/" + publisher, myURL)
-    
+
     #The return should be a dict {"text", "url", "title"}
     #If there's no returning text that means it's bad
     try:
@@ -190,11 +196,27 @@ class CustomStreamListener(tweepy.StreamListener):
                 tweet_path = "tweets/" + tweet_path
                 pickle.dump(status, open(tweet_path, "wb" ))
                 
-                #This returns the typos; I'm not doing anything with them though!
+                #This returns the typos
                 results = getArticle(status.author.screen_name, tweet_path, status.id)
-    
-            
-            
+                
+                if len(results) > 0:
+                    print ("creating pending tweet")
+                    outdict = {}
+                    outdict["typos"] = results
+                    outdict["author"] = status.author.screen_name
+                    outdict["time"] = str(status.created_at)
+                    outdict["id"] = status.id
+                    print ("pending tweet created")
+                    
+                    print (status.author.screen_name)
+                    print (str(status.id))
+                    
+                    #I guess I'll save the results along with the tweet ID to a file so my tweeter can pick it up
+                    with open("pendingTypoTweets/" + status.author.screen_name + "_" + str(status.id) + ".json", 'w') as outfile:
+                        json.dump(results, outfile, indent=4)
+
+        
+                
         except:
             print ('Encountered Exception:')
             pass
